@@ -8,14 +8,14 @@ def login(user = "vicenteeduardoiii", password = "beecrack123"):
     return L
 
 class LocalDatabase():
-    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', download = False, profile_table = None, post_table=None):
+    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', database_file = "Database.h5"):
         super().__init__()
         if ig_session:
             self.ig_session = ig_session
         if load_local:
             try:
-                self.profiles_table = pd.read_csv(profile_table)
-                self.post_table = pd.read_csv(post_table)
+                self.profiles_table = pd.read_hdf(database_file, "profiles")
+                self.post_table = pd.read_hdf(database_file, "posts")
             except:
                 self.create_user_database(profile_file)
                 self.download_users_post()
@@ -39,7 +39,7 @@ class LocalDatabase():
         profiles_table = {"Username": usernames,
                           "User id": user_ids}
         self.profiles_table = pd.DataFrame(profiles_table)
-        self.profiles_table.to_hdf("profiles_table.hdf")
+        self.profiles_table.to_hdf("Database.h5", key = "profiles")
 
     def download_users_post(self):
         post_shortcode = []
@@ -79,11 +79,12 @@ class LocalDatabase():
                       "Date": post_date_utc,
                       "Typename": post_typename}
         self.post_table = pd.DataFrame(post_table)
-        self.post_table.to_csv("Post_Table.csv")
+        self.post_table.to_hdf("Database.h5", key = "posts")
 
 
 if __name__ == "__main__":
-    db = LocalDatabase()
+    L = login()
+    db = LocalDatabase(L, load_local=False)
 
     #for post in profile.get_posts():
     #    time.sleep(10)
