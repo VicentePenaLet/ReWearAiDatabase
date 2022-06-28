@@ -8,57 +8,20 @@ def login(user = "vicenteeduardoiii", password = "beecrack123"):
     return L
 
 class LocalDatabase():
-    def __init__(self, ig_session, load_local = True, profile_file = 'Profiles.txt'):
+    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', download = False):
         super().__init__()
-        self.ig_session = ig_session
+        if ig_session:
+            self.ig_session = ig_session
         if load_local:
             try:
                 self.profiles_table = pd.read_csv("profiles_table.csv")
+                self.post_table = pd.read_csv("post_table.csv")
             except:
                 self.create_user_database(profile_file)
+                self.download_users_post()
         else:
             self.create_user_database(profile_file)
-        print("Profiles Loaded")
-        post_shortcode = []
-        post_title = []
-        post_owner_username = []
-        post_owner_id = []
-        post_date_utc = []
-        post_url = []
-        post_typename = []
-        post_caption = []
-        #post_path = []
-        print("Creating Post Database")
-        for index, row in self.profiles_table.iterrows():
-            print(row["Username"])
-            profile = instaloader.Profile.from_username(self.ig_session.context, row["Username"])
-            n = 0
-            for post in profile.get_posts():
-                print(post)
-                time.sleep(10)
-                post_shortcode.append(post.shortcode)
-                post_title.append(post.title)
-                post_owner_username.append(post.owner_username)
-                post_owner_id.append(post.owner_id)
-                post_date_utc.append(post.date_utc)
-                post_url.append(post.url)
-                post_typename.append(post.caption)
-                post_caption.append(post.pcaption)
-                #post_path.append("{}/".format(row["Username"]))
-                self.ig_session.download_post(post, target=profile.username)
-                n+=1
-                if n > 5:
-                    break
-        self.post_table = {"Owner": post_owner_username,
-                      "Caption:": post_caption,
-                      "Shortcode": post_shortcode,
-                      "Title": post_title,
-                      "Date": post_date_utc,
-                      "Typename": post_typename}
-        self.post_table = pd.DataFrame(post_table)
-        self.post_table.to_hdf("Post_Table.hdf")
-
-
+            self.download_users_post()
 
     def create_user_database(self, file):
         print("Creating Database")
@@ -79,12 +42,48 @@ class LocalDatabase():
         self.profiles_table.to_hdf("profiles_table.hdf")
 
     def download_users_post(self):
-        pass
+        post_shortcode = []
+        post_title = []
+        post_owner_username = []
+        post_owner_id = []
+        post_date_utc = []
+        post_url = []
+        post_typename = []
+        post_caption = []
+        # post_path = []
+        print("Creating Post Database")
+        for index, row in self.profiles_table.iterrows():
+            print(row["Username"])
+            profile = instaloader.Profile.from_username(self.ig_session.context, row["Username"])
+            n = 0
+            for post in profile.get_posts():
+                print(post)
+                time.sleep(10)
+                post_shortcode.append(post.shortcode)
+                post_title.append(post.title)
+                post_owner_username.append(post.owner_username)
+                post_owner_id.append(post.owner_id)
+                post_date_utc.append(post.date_utc)
+                post_url.append(post.url)
+                post_typename.append(post.caption)
+                post_caption.append(post.pcaption)
+                # post_path.append("{}/".format(row["Username"]))
+                self.ig_session.download_post(post, target=profile.username)
+                n += 1
+                if n > 5:
+                    break
+        post_table = {"Owner": post_owner_username,
+                      "Caption:": post_caption,
+                      "Shortcode": post_shortcode,
+                      "Title": post_title,
+                      "Date": post_date_utc,
+                      "Typename": post_typename}
+        self.post_table = pd.DataFrame(post_table)
+        self.post_table.to_csv("Post_Table.csv")
 
 
 if __name__ == "__main__":
-    L = login()
-    db = LocalDatabase(L)
+    db = LocalDatabase()
 
     #for post in profile.get_posts():
     #    time.sleep(10)
