@@ -8,14 +8,14 @@ def login(user = "vicenteeduardoiii", password = "beecrack123"):
     return L
 
 class LocalDatabase():
-    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', download = False):
+    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', download = False, profile_table = None, post_table=None):
         super().__init__()
         if ig_session:
             self.ig_session = ig_session
         if load_local:
             try:
-                self.profiles_table = pd.read_csv("profiles_table.csv")
-                self.post_table = pd.read_csv("post_table.csv")
+                self.profiles_table = pd.read_csv(profile_table)
+                self.post_table = pd.read_csv(post_table)
             except:
                 self.create_user_database(profile_file)
                 self.download_users_post()
