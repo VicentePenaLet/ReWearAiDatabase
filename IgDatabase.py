@@ -2,9 +2,9 @@ import instaloader
 import time
 import pandas as pd
 
-def login():
+def login(user = "vicenteeduardoiii", password = "beecrack123"):
     L = instaloader.Instaloader()
-    L.login("vicenteeduardoiii", "g.e.1234")
+    L.login(user, password)
     return L
 
 class LocalDatabase():
