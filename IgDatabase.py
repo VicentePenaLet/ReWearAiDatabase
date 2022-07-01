@@ -15,8 +15,8 @@ class LocalDatabase():
             self.ig_session = ig_session
         if load_local:
             try:
-                self.profiles_table = pd.read_csv(database_profiles, "profiles")
-                self.post_table = pd.read_csv(database_posts, "posts")
+                self.profiles_table = pd.read_csv(database_profiles)
+                self.post_table = pd.read_csv(database_posts)
             except:
                 self.create_user_database(profile_file)
                 self.download_users_post()
@@ -74,9 +74,7 @@ class LocalDatabase():
                 if n > 5:
                     break
         post_table = {"Owner": post_owner_username,
-                      #"Caption:": post_caption,
                       "Shortcode": post_shortcode,
-                      "Title": post_title,
                       "Date": post_date_utc,
                       "Typename": post_typename}
 
@@ -86,7 +84,8 @@ class LocalDatabase():
 
 
 if __name__ == "__main__":
-    db = LocalDatabase(load_local=True)
+    l = login()
+    db = LocalDatabase(l, load_local=False)
 
     #for post in profile.get_posts():
     #    time.sleep(10)
