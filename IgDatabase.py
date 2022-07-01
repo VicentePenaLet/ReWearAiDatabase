@@ -2,20 +2,21 @@ import instaloader
 import time
 import pandas as pd
 
-def login(user = "vicenteeduardoiii", password = "beecrack123"):
+def login(user = "victoriagomez9021", password = "98vp98"):
     L = instaloader.Instaloader()
     L.login(user, password)
     return L
 
 class LocalDatabase():
-    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', database_file = "Database.h5"):
+    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', database_profiles = "Database_profiles.csv",
+                 database_posts = "Database_post.csv"):
         super().__init__()
         if ig_session:
             self.ig_session = ig_session
         if load_local:
             try:
-                self.profiles_table = pd.read_hdf(database_file, "profiles")
-                self.post_table = pd.read_hdf(database_file, "posts")
+                self.profiles_table = pd.read_csv(database_profiles, "profiles")
+                self.post_table = pd.read_csv(database_posts, "posts")
             except:
                 self.create_user_database(profile_file)
                 self.download_users_post()
@@ -39,7 +40,7 @@ class LocalDatabase():
         profiles_table = {"Username": usernames,
                           "User id": user_ids}
         self.profiles_table = pd.DataFrame(profiles_table)
-        self.profiles_table.to_hdf("Database.h5", key = "profiles")
+        self.profiles_table.to_csv("Database_profiles.csv")
 
     def download_users_post(self):
         post_shortcode = []
@@ -73,18 +74,19 @@ class LocalDatabase():
                 if n > 5:
                     break
         post_table = {"Owner": post_owner_username,
-                      "Caption:": post_caption,
+                      #"Caption:": post_caption,
                       "Shortcode": post_shortcode,
                       "Title": post_title,
                       "Date": post_date_utc,
                       "Typename": post_typename}
+
+
         self.post_table = pd.DataFrame(post_table)
-        self.post_table.to_hdf("Database.h5", key = "posts")
+        self.post_table.to_csv("Database_post.csv")
 
 
 if __name__ == "__main__":
-    L = login()
-    db = LocalDatabase(L, load_local=False)
+    db = LocalDatabase(load_local=True)
 
     #for post in profile.get_posts():
     #    time.sleep(10)
