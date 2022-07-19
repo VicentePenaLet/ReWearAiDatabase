@@ -1,14 +1,50 @@
 import instaloader
 import time
 import pandas as pd
-
-def login(user = "victoriagomez9021", password = "98vp98"):
-    L = instaloader.Instaloader()
-    L.login(user, password)
-    return L
+import glob, os
+import csv
+import shutil
 
 class LocalDatabase():
-    def __init__(self, ig_session = None, load_local = True, profile_file = 'Profiles.txt', database_profiles = "Database_profiles.csv",
+    def __init__(self, root = ".", create = False, database_file = "Post_Database.csv"):
+        super().__init__()
+        self.root = root
+        if create:
+            self.create_database()
+        else:
+            self.Database = pd.read_csv(database_file)
+
+    def create_database(self):
+        os.chdir(self.root+"/DB")
+        tables = []
+        for file in glob.glob("*.csv"):
+            df = pd.read_csv(file)
+            username = df.iloc[0][0]
+            df = df.drop(0)
+            print(df.columns)
+            df.columns = ['Path', 'Caption', 'Link']
+            df["Username"] = username
+            tables.append(df)
+            path = username
+            if not os.path.exists(path):
+                os.makedirs(path)
+                print("The new directory {} is created!".format(path))
+            new_paths = []
+            for image in df["Path"]:
+                head, tail = os.path.split(image)
+                new_path = os.path.join(path, tail)
+                if image.split(".")[-1] == "jpg":
+                    shutil.copyfile(image, new_path)
+                new_paths.append(new_path)
+            df["Path"] = new_paths
+        self.Database = pd.DataFrame(columns= ['Path', 'Caption', 'Link', 'Username'])
+        for table in tables:
+            self.Database = self.Database.append(table, ignore_index=True)
+        self.Database.to_csv("../Post_Database.csv")
+
+
+class LocalDatabase1():
+    def __init__(self, ig_session = None, load_local = True, database_profiles = "Database_profiles.csv",
                  database_posts = "Database_post.csv"):
         super().__init__()
         if ig_session:
@@ -34,7 +70,7 @@ class LocalDatabase():
         user_ids = []
         for username in profiles_usernames:
             username = username.strip()
-            profile = instaloader.Profile.from_username(self.ig_session.context, username)
+            profile = instaloader.Profile.from_id(self.ig_session.context, username)
             usernames.append(username)
             user_ids.append(profile.userid)
         profiles_table = {"Username": usernames,
@@ -54,8 +90,8 @@ class LocalDatabase():
         # post_path = []
         print("Creating Post Database")
         for index, row in self.profiles_table.iterrows():
-            print(row["Username"])
-            profile = instaloader.Profile.from_username(self.ig_session.context, row["Username"])
+            print(row["User id"])
+            profile = instaloader.Profile.from_id(self.ig_session.context, row["User id"])
             n = 0
             for post in profile.get_posts():
                 print(post)
@@ -69,10 +105,11 @@ class LocalDatabase():
                 post_typename.append(post.caption)
                 post_caption.append(post.pcaption)
                 # post_path.append("{}/".format(row["Username"]))
-                self.ig_session.download_post(post, target=profile.username)
+                self.ig_session.download_pic(f"/{profile.username}/{post_shortcode}", post_url, post_url)
                 n += 1
-                if n > 5:
+                if n > 50:
                     break
+
         post_table = {"Owner": post_owner_username,
                       "Shortcode": post_shortcode,
                       "Date": post_date_utc,
@@ -84,9 +121,8 @@ class LocalDatabase():
 
 
 if __name__ == "__main__":
-    l = login()
-    db = LocalDatabase(l, load_local=False)
-
+    db = LocalDatabase(database_file= "Post_Database.csv")
+    print(db.Database.iloc[0])
     #for post in profile.get_posts():
     #    time.sleep(10)
     #    print(post)
